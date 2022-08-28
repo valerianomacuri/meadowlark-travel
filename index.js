@@ -1,33 +1,41 @@
 const express = require('express')
 const { create } = require('express-handlebars')
-const fortune = require('./lib/fortune')
+const handlers = require('./lib/handlers')
+const weatherMiddleware = require('./lib/middleware/weather')
 
-const hbs = create({ defaultLayout: 'main' })
+const hbs = create({
+    defaultLayout: 'main',
+    helpers: {
+        section(name, options) {
+            if (!this._sections) {
+                this._sections = {}
+            }
+            this._sections[name] = options.fn(this)
+            return null
+        },
+    },
+})
 
 const app = express()
 
 app.engine('handlebars', hbs.engine)
 app.set('view engine', 'handlebars')
+app.set('view cache', true)
 
 app.use(express.static(__dirname + '/public'))
+app.use(weatherMiddleware)
 
 const port = process.env.PORT || 3000
 
-app.get('/', (req, res) => res.render('home'))
+app.get('/', handlers.home)
 
-app.get('/about', (req, res) => {
-    res.render('about', { fortune: fortune.getFortune() })
-})
+app.get('/about', handlers.about)
 
-app.use((req, res) => {
-    res.status(404)
-    res.render('404')
-})
+app.get('/section-test', handlers.sectionTest)
 
-app.use((err, req, res) => {
-    console.error(err.message)
-    res.status(500).render('500')
-})
+app.use(handlers.notFound)
+
+app.use(handlers.serverError)
 
 app.listen(port, () =>
     console.log(
