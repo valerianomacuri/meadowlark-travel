@@ -33,7 +33,7 @@ const app = express()
 app.engine('handlebars', hbs.engine)
 app.set('view engine', 'handlebars')
 
-//* Form data
+//* Form Handling
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
@@ -50,6 +50,7 @@ app.use(
 //* Serve static files
 app.use(express.static(__dirname + '/public'))
 
+//* Custom Middlewares
 app.use(weatherMiddleware)
 app.use(flashMiddleware)
 
